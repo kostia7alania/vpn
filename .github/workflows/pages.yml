@@ -1,0 +1,36 @@
+name: Publish page
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build page
+        env:
+          VPN_AUTO: ${{ secrets.VPN_AUTO }}
+          VPN_CASCADE_SG: ${{ secrets.VPN_CASCADE_SG }}
+          VPN_THAI: ${{ secrets.VPN_THAI }}
+          VPN_DIRECT_SG: ${{ secrets.VPN_DIRECT_SG }}
+          VPN_RUSSIA: ${{ secrets.VPN_RUSSIA }}
+          VPN_HYSTERIA: ${{ secrets.VPN_HYSTERIA }}
+        run: node scripts/render.mjs
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: _site
+          retention-days: 1
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
